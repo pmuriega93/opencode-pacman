@@ -21,6 +21,15 @@ const GHOST_SPEEDS = {
   clyde: 0.1,    // 1/10 celda/frame
 };
 
+// Retardo de salida por tipo de fantasma, en milisegundos reales desde el
+// inicio de la partida. Blinky sale en el primer frame; los demas, de uno en uno.
+const GHOST_RELEASE_DELAYS = {
+  blinky: 0,    // agresivo: sale en el primer frame
+  pinky: 1000,  // emboscada: 1 s
+  inky: 2000,   // intercepcion: 2 s
+  clyde: 3000,  // erratico: 3 s
+};
+
 // Desempate del arcade: arriba > izquierda > abajo > derecha.
 const DIR_PRIORITY = [ 'up', 'left', 'down', 'right' ];
 const PINKY_LOOKAHEAD = 4;        // celdas por delante de Pacman
@@ -43,6 +52,9 @@ function createGame() {
     lives: 3,
     dotsRemaining: dots,
     grid,
+    // Reloj de la secuencia de salida: performance.now() al empezar la partida.
+    // null = reloj sin arrancar.
+    startedAt: null,
     pacman: {
       x: PACMAN_START.x,
       y: PACMAN_START.y,
@@ -56,6 +68,10 @@ function createGame() {
       dir: 'up',
       speed: GHOST_SPEEDS[ g.kind ] || GHOST_SPEED,
       kind: g.kind,
+      // Estado de salida: los 4 esperan su turno, incluido Blinky.
+      status: 'waiting', // waiting = dentro de la pen, esperando su turno
+      bobDir: 1,         // sentido del rebote vertical mientras espera
+      releaseAt: null,   // instante real (performance.now()) en que se libera
     } ) ),
   };
 }
