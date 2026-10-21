@@ -280,9 +280,33 @@ function decideGhost( game, g ) {
   if ( dir ) g.dir = dir;
 }
 
+// Rearma la secuencia de salida: fija el reloj y el turno de cada fantasma.
+// Se llama al empezar la partida y cada vez que Pacman pierde una vida.
+function armGhostRelease( game ) {
+  game.startedAt = performance.now();
+  for ( const g of game.ghosts ) {
+    g.status = 'waiting';
+    g.bobDir = 1;
+    g.releaseAt = game.startedAt + ( GHOST_RELEASE_DELAYS[ g.kind ] || 0 );
+  }
+}
+
+// Pasa a "active" los fantasmas cuyo instante de liberacion ya ha pasado.
+function updateGhostReleases( game ) {
+  const now = performance.now();
+  for ( const g of game.ghosts ) {
+    if ( g.status !== 'waiting' ) continue;
+    if ( g.releaseAt === null || now < g.releaseAt ) continue;
+    g.status = 'active';
+  }
+}
+
 function moveGhost( game, g ) {
   const grid = game.grid;
   const width = grid[ 0 ].length;
+
+  // Un fantasma en espera no sale de la pen: se queda dentro hasta su turno.
+  if ( g.status === 'waiting' ) return;
 
   if ( aligned( g.x ) && aligned( g.y ) ) {
     g.x = Math.round( g.x );
@@ -316,6 +340,15 @@ function collides( a, b ) {
 }
 
 function update( game ) {
+  // La secuencia de salida solo corre con la partida en estado "playing".
+  if ( game.state !== 'playing' ) return;
+
+  // El reloj de la salida arranca en el primer update de la partida.
+  if ( game.startedAt === null ) armGhostRelease( game );
+
+  // Libera a los fantasmas cuyo turno ya ha llegado.
+  updateGhostReleases( game );
+
   movePacman( game );
   game.ghosts.forEach( ( g ) => moveGhost( game, g ) );
 
@@ -327,6 +360,8 @@ function update( game ) {
         return;
       }
       resetPositions( game );
+      // La secuencia se repite: Blinky sale de inmediato y los demas escalonados.
+      armGhostRelease( game );
       break;
     }
   }
