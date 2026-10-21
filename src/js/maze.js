@@ -51,6 +51,9 @@ const MAZE = MAZE_STR.map( ( row ) => row.split( '' ).map( parseTile ) );
 
 const TUNNEL_ROW = 14;
 const PACMAN_START = { x: 13, y: 23 };
+// Interior de la pen: filas 13-15, cols 11-16 (6x3), todas transitables.
+// El rebote vertical de los fantasmas en espera usa solo top y bottom.
+const PEN_BOUNDS = { top: 13, bottom: 15, left: 11, right: 16 };
 // Los 4 arrancan dentro de la pen (filas 13-15, cols 11-16).
 // La puerta (fila 12, cols 13-14) es transitable para fantasmas.
 const GHOST_STARTS = [
@@ -63,4 +66,5 @@ const GHOST_STARTS = [
 window.MAZE = MAZE;
 window.TUNNEL_ROW = TUNNEL_ROW;
 window.PACMAN_START = PACMAN_START;
+window.PEN_BOUNDS = PEN_BOUNDS;
 window.GHOST_STARTS = GHOST_STARTS;

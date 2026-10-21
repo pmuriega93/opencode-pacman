@@ -21,6 +21,15 @@ const GHOST_SPEEDS = {
   clyde: 0.1,    // 1/10 celda/frame
 };
 
+// Retardo de salida por tipo de fantasma, en milisegundos reales desde el
+// inicio de la partida. Blinky sale en el primer frame; los demas, de uno en uno.
+const GHOST_RELEASE_DELAYS = {
+  blinky: 0,    // agresivo: sale en el primer frame
+  pinky: 1000,  // emboscada: 1 s
+  inky: 2000,   // intercepcion: 2 s
+  clyde: 3000,  // erratico: 3 s
+};
+
 // Desempate del arcade: arriba > izquierda > abajo > derecha.
 const DIR_PRIORITY = [ 'up', 'left', 'down', 'right' ];
 const PINKY_LOOKAHEAD = 4;        // celdas por delante de Pacman
@@ -43,6 +52,9 @@ function createGame() {
     lives: 3,
     dotsRemaining: dots,
     grid,
+    // Reloj de la secuencia de salida: performance.now() al empezar la partida.
+    // null = reloj sin arrancar.
+    startedAt: null,
     pacman: {
       x: PACMAN_START.x,
       y: PACMAN_START.y,
@@ -56,6 +68,10 @@ function createGame() {
       dir: 'up',
       speed: GHOST_SPEEDS[ g.kind ] || GHOST_SPEED,
       kind: g.kind,
+      // Estado de salida: los 4 esperan su turno, incluido Blinky.
+      status: 'waiting', // waiting = dentro de la pen, esperando su turno
+      bobDir: 1,         // sentido del rebote vertical mientras espera
+      releaseAt: null,   // instante real (performance.now()) en que se libera
     } ) ),
   };
 }
@@ -264,9 +280,68 @@ function decideGhost( game, g ) {
   if ( dir ) g.dir = dir;
 }
 
+// Rearma la secuencia de salida: fija el reloj y el turno de cada fantasma.
+// Se llama al empezar la partida y cada vez que Pacman pierde una vida.
+function armGhostRelease( game ) {
+  game.startedAt = performance.now();
+  for ( const g of game.ghosts ) {
+    g.status = 'waiting';
+    g.bobDir = 1;
+    g.releaseAt = game.startedAt + ( GHOST_RELEASE_DELAYS[ g.kind ] || 0 );
+  }
+}
+
+// Pasa a "active" los fantasmas cuyo instante de liberacion ya ha pasado.
+function updateGhostReleases( game ) {
+  const now = performance.now();
+  for ( const g of game.ghosts ) {
+    if ( g.status !== 'waiting' ) continue;
+    if ( g.releaseAt === null || now < g.releaseAt ) continue;
+    g.status = 'active';
+    // Se ajusta al centro de la celda: la IA decide la direccion ahi.
+    g.x = Math.round( g.x );
+    g.y = Math.round( g.y );
+  }
+}
+
+// Rebote vertical del fantasma en espera dentro de la pen.
+function bobGhost( game, g ) {
+  const top = PEN_BOUNDS.top;
+  const bottom = PEN_BOUNDS.bottom;
+  const next = g.y + g.bobDir * g.speed;
+
+  // Limite de la pen: al llegar a la fila 13 o a la 15 se invierte el sentido.
+  if ( next >= bottom ) {
+    g.y = bottom;
+    g.bobDir = -1;
+  } else if ( next <= top ) {
+    g.y = top;
+    g.bobDir = 1;
+  } else {
+    g.y = next;
+  }
+
+  // La columna es fija: el fantasma rebota dentro de la pen.
+  g.x = clamp( g.x, PEN_BOUNDS.left, PEN_BOUNDS.right );
+
+  // El rebote nunca debe meter al fantasma en una pared.
+  if ( isWall( game.grid, Math.round( g.x ), Math.round( g.y ), 'ghost' ) ) {
+    g.bobDir = -g.bobDir;
+  }
+
+  // dir refleja el sentido para que los ojos miren al lado correcto.
+  g.dir = g.bobDir === 1 ? 'down' : 'up';
+}
+
 function moveGhost( game, g ) {
   const grid = game.grid;
   const width = grid[ 0 ].length;
+
+  // Un fantasma en espera no usa la IA: rebota dentro de la pen.
+  if ( g.status === 'waiting' ) {
+    bobGhost( game, g );
+    return;
+  }
 
   if ( aligned( g.x ) && aligned( g.y ) ) {
     g.x = Math.round( g.x );
@@ -300,6 +375,15 @@ function collides( a, b ) {
 }
 
 function update( game ) {
+  // La secuencia de salida solo corre con la partida en estado "playing".
+  if ( game.state !== 'playing' ) return;
+
+  // El reloj de la salida arranca en el primer update de la partida.
+  if ( game.startedAt === null ) armGhostRelease( game );
+
+  // Libera a los fantasmas cuyo turno ya ha llegado.
+  updateGhostReleases( game );
+
   movePacman( game );
   game.ghosts.forEach( ( g ) => moveGhost( game, g ) );
 
@@ -311,6 +395,8 @@ function update( game ) {
         return;
       }
       resetPositions( game );
+      // La secuencia se repite: Blinky sale de inmediato y los demas escalonados.
+      armGhostRelease( game );
       break;
     }
   }
