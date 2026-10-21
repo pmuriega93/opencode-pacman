@@ -298,15 +298,50 @@ function updateGhostReleases( game ) {
     if ( g.status !== 'waiting' ) continue;
     if ( g.releaseAt === null || now < g.releaseAt ) continue;
     g.status = 'active';
+    // Se ajusta al centro de la celda: la IA decide la direccion ahi.
+    g.x = Math.round( g.x );
+    g.y = Math.round( g.y );
   }
+}
+
+// Rebote vertical del fantasma en espera dentro de la pen.
+function bobGhost( game, g ) {
+  const top = PEN_BOUNDS.top;
+  const bottom = PEN_BOUNDS.bottom;
+  const next = g.y + g.bobDir * g.speed;
+
+  // Limite de la pen: al llegar a la fila 13 o a la 15 se invierte el sentido.
+  if ( next >= bottom ) {
+    g.y = bottom;
+    g.bobDir = -1;
+  } else if ( next <= top ) {
+    g.y = top;
+    g.bobDir = 1;
+  } else {
+    g.y = next;
+  }
+
+  // La columna es fija: el fantasma rebota dentro de la pen.
+  g.x = clamp( g.x, PEN_BOUNDS.left, PEN_BOUNDS.right );
+
+  // El rebote nunca debe meter al fantasma en una pared.
+  if ( isWall( game.grid, Math.round( g.x ), Math.round( g.y ), 'ghost' ) ) {
+    g.bobDir = -g.bobDir;
+  }
+
+  // dir refleja el sentido para que los ojos miren al lado correcto.
+  g.dir = g.bobDir === 1 ? 'down' : 'up';
 }
 
 function moveGhost( game, g ) {
   const grid = game.grid;
   const width = grid[ 0 ].length;
 
-  // Un fantasma en espera no sale de la pen: se queda dentro hasta su turno.
-  if ( g.status === 'waiting' ) return;
+  // Un fantasma en espera no usa la IA: rebota dentro de la pen.
+  if ( g.status === 'waiting' ) {
+    bobGhost( game, g );
+    return;
+  }
 
   if ( aligned( g.x ) && aligned( g.y ) ) {
     g.x = Math.round( g.x );

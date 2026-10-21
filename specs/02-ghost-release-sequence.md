@@ -1,6 +1,6 @@
 # SPEC 02 — Salida escalonada de los fantasmas
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 01
 > **Fecha:** 2026-10-21
 > **Objetivo:** Blinky sale de la pen de inmediato y Pinky, Inky y Clyde salen de uno en uno, con un segundo de espera entre cada uno.
@@ -96,18 +96,18 @@ function bobGhost( game, g )
 
 ## Criterios de aceptación
 
-- [ ] Al abrir `src/index.html` no hay errores en la consola del navegador.
-- [ ] Al pulsar Start, Blinky sale de la pen en el primer frame de la partida y los otros 3 siguen dentro de ella.
-- [ ] Pinky sale de la pen 1 segundo después del inicio de la partida (±1 frame).
-- [ ] Inky sale de la pen 2 segundos después del inicio de la partida (±1 frame).
-- [ ] Clyde sale de la pen 3 segundos después del inicio de la partida (±1 frame).
-- [ ] Los 3 fantasmas en espera rebotan verticalmente entre las filas 13 y 15 y no salen de la pen mientras esperan.
-- [ ] Al perder una vida, los 4 vuelven a la pen y la secuencia se repite: Blinky sale de inmediato, Pinky a los 1 s, Inky a los 2 s y Clyde a los 3 s.
-- [ ] La secuencia solo avanza con la partida en estado `playing`: en la pantalla de inicio ningún fantasma se libera.
-- [ ] Ningún fantasma atraviesa paredes ni se sale del laberinto, ni durante la espera ni en el instante de su liberación.
-- [ ] Los 4 fantasmas conservan su color y su IA (blinky agresivo, pinky emboscada, inky intercepción, clyde errático).
-- [ ] La partida se puede ganar: se pueden comer todos los puntos y el estado pasa a `won`.
-- [ ] `src/js/render.js` y `src/js/main.js` no se modifican.
+- [x] Al abrir `src/index.html` no hay errores en la consola del navegador.
+- [x] Al pulsar Start, Blinky sale de la pen en el primer frame de la partida y los otros 3 siguen dentro de ella.
+- [x] Pinky sale de la pen 1 segundo después del inicio de la partida (±1 frame).
+- [x] Inky sale de la pen 2 segundos después del inicio de la partida (±1 frame).
+- [x] Clyde sale de la pen 3 segundos después del inicio de la partida (±1 frame).
+- [x] Los 3 fantasmas en espera rebotan verticalmente entre las filas 13 y 15 y no salen de la pen mientras esperan.
+- [x] Al perder una vida, los 4 vuelven a la pen y la secuencia se repite: Blinky sale de inmediato, Pinky a los 1 s, Inky a los 2 s y Clyde a los 3 s.
+- [x] La secuencia solo avanza con la partida en estado `playing`: en la pantalla de inicio ningún fantasma se libera.
+- [x] Ningún fantasma atraviesa paredes ni se sale del laberinto, ni durante la espera ni en el instante de su liberación.
+- [x] Los 4 fantasmas conservan su color y su IA (blinky agresivo, pinky emboscada, inky intercepción, clyde errático).
+- [x] La partida se puede ganar: se pueden comer todos los puntos y el estado pasa a `won`.
+- [x] `src/js/render.js` y `src/js/main.js` no se modifican.
 
 ## Decisiones
 
