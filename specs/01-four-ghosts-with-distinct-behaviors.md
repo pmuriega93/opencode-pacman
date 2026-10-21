@@ -1,6 +1,6 @@
 # SPEC 01 — Cuatro fantasmas con comportamientos distintos
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** —
 > **Fecha:** 2026-10-21
 > **Objetivo:** Cuatro fantasmas con IA propia persiguen a Pacman por el laberinto, y uno de ellos lo hace de forma agresiva y directa.
@@ -107,19 +107,19 @@ Restricción de diseño: **las velocidades deben ser 1/N de celda por frame** (a
 
 ## Criterios de aceptación
 
-- [ ] Al abrir `src/index.html` no hay errores en la consola del navegador.
-- [ ] `createGame()` devuelve `game.ghosts` con 4 elementos, uno de cada tipo (`blinky`, `pinky`, `inky`, `clyde`).
-- [ ] Los 4 fantasmas aparecen dentro de la pen y salen de ella sin quedarse bloqueados.
-- [ ] Cada fantasma conserva su color y los 4 colores son distintos (rojo, rosa, cian, naranja).
-- [ ] Blinky acorta la ruta: con Pacman quieto en una celda abierta, la distancia en celdas entre Blinky y Pacman disminuye en cada cruce.
-- [ ] Pinky se interpone 4 celdas por delante de Pacman en la dirección en la que Pacman mira.
-- [ ] Inky apunta al punto que resulta de duplicar el vector desde Blinky hasta 2 celdas por delante de Pacman.
-- [ ] Clyde persigue a Pacman mientras está a más de 8 celdas y deja de perseguirlo al acercarse a 8 celdas o menos.
-- [ ] Un fantasma puede invertir su dirección en una celda normal, no solo en un callejón.
-- [ ] Blinky se mueve más rápido que los otros 3 (0.125 frente a 0.1 celdas/frame).
-- [ ] Al perder una vida, los 4 fantasmas vuelven a su celda de inicio en la pen y Pacman a (13, 23).
-- [ ] Ningún fantasma atraviesa paredes ni se sale del laberinto, y el túnel (fila 14) mantiene la conexión izquierda-derecha.
-- [ ] La partida se puede ganar: se pueden comer todos los puntos y el estado pasa a `won`.
+- [x] Al abrir `src/index.html` no hay errores en la consola del navegador.
+- [x] `createGame()` devuelve `game.ghosts` con 4 elementos, uno de cada tipo (`blinky`, `pinky`, `inky`, `clyde`).
+- [x] Los 4 fantasmas aparecen dentro de la pen y salen de ella sin quedarse bloqueados.
+- [x] Cada fantasma conserva su color y los 4 colores son distintos (rojo, rosa, cian, naranja).
+- [x] Blinky acorta la ruta: con Pacman quieto en una celda abierta, la distancia en celdas entre Blinky y Pacman disminuye en cada cruce.
+- [x] Pinky se interpone 4 celdas por delante de Pacman en la dirección en la que Pacman mira.
+- [x] Inky apunta al punto que resulta de duplicar el vector desde Blinky hasta 2 celdas por delante de Pacman.
+- [x] Clyde persigue a Pacman mientras está a más de 8 celdas y deja de perseguirlo al acercarse a 8 celdas o menos.
+- [x] Un fantasma puede invertir su dirección en una celda normal, no solo en un callejón.
+- [x] Blinky se mueve más rápido que los otros 3 (0.125 frente a 0.1 celdas/frame).
+- [x] Al perder una vida, los 4 fantasmas vuelven a su celda de inicio en la pen y Pacman a (13, 23).
+- [x] Ningún fantasma atraviesa paredes ni se sale del laberinto, y el túnel (fila 14) mantiene la conexión izquierda-derecha.
+- [x] La partida se puede ganar: se pueden comer todos los puntos y el estado pasa a `won`.
 
 ## Decisiones
 
