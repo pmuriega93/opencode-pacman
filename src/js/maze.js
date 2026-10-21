@@ -51,9 +51,13 @@ const MAZE = MAZE_STR.map( ( row ) => row.split( '' ).map( parseTile ) );
 
 const TUNNEL_ROW = 14;
 const PACMAN_START = { x: 13, y: 23 };
+// Los 4 arrancan dentro de la pen (filas 13-15, cols 11-16).
+// La puerta (fila 12, cols 13-14) es transitable para fantasmas.
 const GHOST_STARTS = [
-  { x: 13, y: 14, kind: 'hunter' }, // dentro de la pen
-  { x: 14, y: 14, kind: 'random' }, // dentro de la pen
+  { x: 13, y: 14, kind: 'blinky' }, // agresivo: persigue directo a Pacman
+  { x: 14, y: 14, kind: 'pinky' },  // emboscada: 4 celdas por delante de Pacman
+  { x: 11, y: 14, kind: 'inky' },   // intercepcion: vector desde Blinky
+  { x: 16, y: 14, kind: 'clyde' },  // erratico: huye si esta cerca
 ];
 
 window.MAZE = MAZE;
