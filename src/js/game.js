@@ -30,6 +30,11 @@ const GHOST_RELEASE_DELAYS = {
   clyde: 3000,  // erratico: 3 s
 };
 
+// Ventana en la que los fantasmas son comestibles tras comer un power pellet.
+const PELLET_EFFECT_MS = 5000;
+// Tiempo que un fantasma comido pasa inmovilizado en la pen.
+const GHOST_FROZEN_MS = 1000;
+
 // Desempate del arcade: arriba > izquierda > abajo > derecha.
 const DIR_PRIORITY = [ 'up', 'left', 'down', 'right' ];
 const PINKY_LOOKAHEAD = 4;        // celdas por delante de Pacman
@@ -43,8 +48,9 @@ function createGame() {
   // La celda de inicio de Pacman arranca sin dot.
   grid[ PACMAN_START.y ][ PACMAN_START.x ] = 0;
 
+  // Los pellets (valor 4) cuentan: hay que comer los 4 para ganar.
   let dots = 0;
-  for ( const row of grid ) for ( const v of row ) if ( v === 2 ) dots++;
+  for ( const row of grid ) for ( const v of row ) if ( v === 2 || v === 4 ) dots++;
 
   return {
     state: 'start',
@@ -55,6 +61,9 @@ function createGame() {
     // Reloj de la secuencia de salida: performance.now() al empezar la partida.
     // null = reloj sin arrancar.
     startedAt: null,
+    // Ventana de efecto de los power pellets: performance.now() hasta el que
+    // los fantasmas son comestibles. null = sin efecto activo.
+    pelletEffectUntil: null,
     pacman: {
       x: PACMAN_START.x,
       y: PACMAN_START.y,
@@ -72,6 +81,8 @@ function createGame() {
       status: 'waiting', // waiting = dentro de la pen, esperando su turno
       bobDir: 1,         // sentido del rebote vertical mientras espera
       releaseAt: null,   // instante real (performance.now()) en que se libera
+      // Estado de congelado: comido por Pacman, inmovilizado en la pen.
+      frozenUntil: null, // instante real (performance.now()) hasta el que sigue inmovilizado
     } ) ),
   };
 }
@@ -129,6 +140,13 @@ function movePacman( game ) {
       grid[ p.y ][ p.x ] = 0;
       game.score += 10;
       game.dotsRemaining--;
+    }
+    // Comer power pellet: abre la ventana de efecto (sin puntos).
+    if ( grid[ p.y ][ p.x ] === 4 ) {
+      grid[ p.y ][ p.x ] = 0;
+      game.dotsRemaining--;
+      // Cada pellet renueva la ventana completa.
+      game.pelletEffectUntil = performance.now() + PELLET_EFFECT_MS;
     }
     // Si no puede seguir, se detiene en la celda.
     if ( !canMove( grid, p.x, p.y, p.dir, 'pacman' ) ) return;
@@ -288,6 +306,8 @@ function armGhostRelease( game ) {
     g.status = 'waiting';
     g.bobDir = 1;
     g.releaseAt = game.startedAt + ( GHOST_RELEASE_DELAYS[ g.kind ] || 0 );
+    // Un fantasma congelado vuelve a la pen como los demas: sin efecto pendiente.
+    g.frozenUntil = null;
   }
 }
 
@@ -301,6 +321,18 @@ function updateGhostReleases( game ) {
     // Se ajusta al centro de la celda: la IA decide la direccion ahi.
     g.x = Math.round( g.x );
     g.y = Math.round( g.y );
+  }
+}
+
+// Los fantasmas congelados cuyo frozenUntil ya paso vuelven a estar active.
+// Al quedar centrado en su celda, la IA decide la direccion de salida.
+function updateFrozenGhosts( game ) {
+  const now = performance.now();
+  for ( const g of game.ghosts ) {
+    if ( g.status !== 'frozen' ) continue;
+    if ( g.frozenUntil === null || now < g.frozenUntil ) continue;
+    g.status = 'active';
+    g.frozenUntil = null;
   }
 }
 
@@ -336,6 +368,9 @@ function bobGhost( game, g ) {
 function moveGhost( game, g ) {
   const grid = game.grid;
   const width = grid[ 0 ].length;
+
+  // Un fantasma congelado (comido) no se mueve: espera 1 s en la pen.
+  if ( g.status === 'frozen' ) return;
 
   // Un fantasma en espera no usa la IA: rebota dentro de la pen.
   if ( g.status === 'waiting' ) {
@@ -374,6 +409,23 @@ function collides( a, b ) {
   return Math.abs( a.x - b.x ) < 0.5 && Math.abs( a.y - b.y ) < 0.5;
 }
 
+// ¿Está abierta la ventana de efecto de los pellets?
+function isGhostEdible( game ) {
+  if ( game.pelletEffectUntil === null ) return false;
+  return performance.now() < game.pelletEffectUntil;
+}
+
+// Pacman se come un fantasma comestible: vuelve a la pen y queda congelado 1 s.
+function eatGhost( game, g ) {
+  const i = game.ghosts.indexOf( g );
+  const start = GHOST_STARTS[ i ];
+  g.x = start.x;
+  g.y = start.y;
+  g.dir = 'up';
+  g.status = 'frozen';
+  g.frozenUntil = performance.now() + GHOST_FROZEN_MS;
+}
+
 function update( game ) {
   // La secuencia de salida solo corre con la partida en estado "playing".
   if ( game.state !== 'playing' ) return;
@@ -384,11 +436,19 @@ function update( game ) {
   // Libera a los fantasmas cuyo turno ya ha llegado.
   updateGhostReleases( game );
 
+  // Descongela a los fantasmas comidos cuyo tiempo de espera ya ha pasado.
+  updateFrozenGhosts( game );
+
   movePacman( game );
   game.ghosts.forEach( ( g ) => moveGhost( game, g ) );
 
   for ( const g of game.ghosts ) {
     if ( collides( game.pacman, g ) ) {
+      // Fantasma comestible: Pacman se lo come y no pierde vida.
+      if ( isGhostEdible( game ) ) {
+        eatGhost( game, g );
+        break;
+      }
       game.lives--;
       if ( game.lives <= 0 ) {
         game.state = 'lost';
