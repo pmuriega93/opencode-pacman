@@ -5,6 +5,8 @@ const TILE = 20;
 const WALL_COLOR = '#2121ff';
 const DOOR_COLOR = '#ffb8ff';
 const DOT_COLOR = '#ffb897';
+const PELLET_COLOR = '#ffd28f'; // power pellet: tono mas claro que el dot
+const BLINK_MS = 150; // periodo del parpadeo del fantasma inmovilizado
 
 function cellCenter( x, y ) {
   return { cx: x * TILE + TILE / 2, cy: y * TILE + TILE / 2 };
@@ -79,6 +81,23 @@ function drawDots( ctx, grid ) {
   }
 }
 
+// Power pellets (celdas con valor 4): circulos grandes que pulsan,
+// visualmente distintos de los dots.
+function drawPowerPellets( ctx, grid, frame ) {
+  ctx.fillStyle = PELLET_COLOR;
+  for ( let y = 0; y < grid.length; y++ ) {
+    for ( let x = 0; x < grid[ 0 ].length; x++ ) {
+      if ( grid[ y ][ x ] !== 4 ) continue;
+      const { cx, cy } = cellCenter( x, y );
+      // El radio oscila entre 5 y 7 px: el pellet respira.
+      const r = 6 + Math.sin( frame * 0.15 ) * 1.5;
+      ctx.beginPath();
+      ctx.arc( cx, cy, r, 0, Math.PI * 2 );
+      ctx.fill();
+    }
+  }
+}
+
 function drawPacman( ctx, p, frame ) {
   const { cx, cy } = cellCenter( p.x, p.y );
   let rot = 0;
@@ -98,7 +117,11 @@ function drawPacman( ctx, p, frame ) {
   ctx.fill();
 }
 
-function drawGhost( ctx, g, color ) {
+function drawGhost( ctx, g, color, now ) {
+  // Un fantasma congelado (comido) parpadea: solo se dibuja en la mitad
+  // "encendida" de cada periodo de BLINK_MS.
+  if ( g.status === 'frozen' && ( now % BLINK_MS ) >= BLINK_MS / 2 ) return;
+
   const { cx, cy } = cellCenter( g.x, g.y );
   const r = TILE / 2 - 1;
   const top = cy - r;
@@ -163,8 +186,9 @@ function draw( ctx, game, frame ) {
   drawWalls( ctx, grid );
   drawDoor( ctx, grid );
   drawDots( ctx, grid );
+  drawPowerPellets( ctx, grid, frame );
   drawPacman( ctx, game.pacman, frame );
-  game.ghosts.forEach( ( g ) => drawGhost( ctx, g, GHOST_COLORS[ g.kind ] || '#ff0000' ) );
+  game.ghosts.forEach( ( g ) => drawGhost( ctx, g, GHOST_COLORS[ g.kind ] || '#ff0000', performance.now() ) );
   drawHUD( ctx, game, W );
 }
 

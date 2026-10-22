@@ -1,6 +1,6 @@
 # SPEC 03 — Power pellets: Pacman puede comer fantasmas
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 01, SPEC 02
 > **Fecha:** 2026-10-21
 > **Objetivo:** Cuatro power pellets en los vértices del rectángulo interior del laberinto que hacen comestibles a los fantasmas durante 5 segundos, y cada fantasma comido vuelve a la pen inmovilizado y parpadeando durante 1 segundo.
@@ -112,22 +112,22 @@ function drawPowerPellets( ctx, grid, frame ) // círculo grande pulsante
 
 ## Criterios de aceptación
 
-- [ ] Al abrir `src/index.html` no hay errores en la consola del navegador.
-- [ ] El laberinto tiene exactamente 4 power pellets, en `(1,1)`, `(26,1)`, `(1,29)` y `(26,29)`, y los 4 son alcanzables por Pacman.
-- [ ] Los pellets se dibujan como círculos grandes pulsantes, visualmente distintos de los dots.
-- [ ] Al comer un pellet, desaparece del laberinto (no vuelve a aparecer) y `dotsRemaining` baja en 1.
-- [ ] Al comer un pellet, los 4 fantasmas son comestibles durante 5 s (medido con `performance.now()`).
-- [ ] Comer un segundo pellet con el efecto ya activo renueva la ventana completa de 5 s.
-- [ ] Al tocar un fantasma comestible, Pacman se lo come: no pierde vida y el fantasma desaparece de esa celda.
-- [ ] El fantasma comido reaparece en su celda de inicio dentro de la pen.
-- [ ] El fantasma comido no se mueve durante 1 segundo.
-- [ ] Mientras está inmovilizado, el fantasma parpadea (desaparece y reaparece cada ~150 ms).
-- [ ] Pasados los 1 s, el fantasma vuelve a la normalidad: `status = "active"` y su IA lo saca de la pen por la puerta.
-- [ ] Transcurridos los 5 s del efecto, los fantasmas vuelven a ser peligrosos: tocar uno cuesta una vida.
-- [ ] Los fantasmas conservan su color y su IA; no hay estado asustado (no cambian de color, no huyen, no dan media vuelta).
-- [ ] Los pellets cuentan para la victoria: solo se gana después de comerse los 4.
-- [ ] Al perder una vida, los 4 fantasmas vuelven a la pen y se repite la salida escalonada de SPEC 02.
-- [ ] `src/js/main.js` no se modifica.
+- [x] Al abrir `src/index.html` no hay errores en la consola del navegador.
+- [x] El laberinto tiene exactamente 4 power pellets, en `(1,1)`, `(26,1)`, `(1,29)` y `(26,29)`, y los 4 son alcanzables por Pacman.
+- [x] Los pellets se dibujan como círculos grandes pulsantes, visualmente distintos de los dots.
+- [x] Al comer un pellet, desaparece del laberinto (no vuelve a aparecer) y `dotsRemaining` baja en 1.
+- [x] Al comer un pellet, los 4 fantasmas son comestibles durante 5 s (medido con `performance.now()`).
+- [x] Comer un segundo pellet con el efecto ya activo renueva la ventana completa de 5 s.
+- [x] Al tocar un fantasma comestible, Pacman se lo come: no pierde vida y el fantasma desaparece de esa celda.
+- [x] El fantasma comido reaparece en su celda de inicio dentro de la pen.
+- [x] El fantasma comido no se mueve durante 1 segundo.
+- [x] Mientras está inmovilizado, el fantasma parpadea (desaparece y reaparece cada ~150 ms).
+- [x] Pasados los 1 s, el fantasma vuelve a la normalidad: `status = "active"` y su IA lo saca de la pen por la puerta.
+- [x] Transcurridos los 5 s del efecto, los fantasmas vuelven a ser peligrosos: tocar uno cuesta una vida.
+- [x] Los fantasmas conservan su color y su IA; no hay estado asustado (no cambian de color, no huyen, no dan media vuelta).
+- [x] Los pellets cuentan para la victoria: solo se gana después de comerse los 4.
+- [x] Al perder una vida, los 4 fantasmas vuelven a la pen y se repite la salida escalonada de SPEC 02.
+- [x] `src/js/main.js` no se modifica.
 
 ## Decisiones
 
